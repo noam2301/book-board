@@ -1851,9 +1851,13 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
                     required
                   />
 
+<<<<<<< HEAD
 <select
   value={genre}
   onChange={(e) => setGenre(e.target.value)}
+=======
+                 <select
+>>>>>>> 46c7bd987cc2c39488943c3cfe6791538f07603c
   style={{
     height: 44,
     borderRadius: 12,
@@ -1861,7 +1865,14 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
     background: "rgba(255,255,255,0.85)",
     padding: "0 14px",
   }}
+<<<<<<< HEAD
 >
+=======
+  value={genre}
+  onChange={(e) => setGenre(e.target.value)}
+>
+  <option value="">Select genre</option>
+>>>>>>> 46c7bd987cc2c39488943c3cfe6791538f07603c
   {GENRES.map((g) => (
     <option key={g} value={g}>
       {g}
