@@ -461,7 +461,106 @@ function SubscribeButton() {
     </div>
   );
 }
+const GENRES = [
+  "Fantasy",
+  "Sci-Fi",
+  "Romance",
+  "Mystery",
+  "Thriller",
+  "Horror",
+  "Historical Fiction",
+  "Adventure",
+  "picture books",
+  "humor",
+  "Drama",
+  "Poetry",
+  "Biography",
+  "short stories",
+  "Self-Help",
+  "Science",
+  "Classic",
+  "Business",
+  "manga",
+  "comics",
+] as const;
+function getGenreCardStyle(genre: string | null) {
+  const g = (genre ?? "").toLowerCase();
 
+  if (g === "fantasy" || g === "urban fantasy" || g === "paranormal") {
+    return {
+      backgroundImage:
+        "linear-gradient(135deg, rgba(76,29,149,0.85), rgba(30,41,59,0.80)), url('/genres/fantasy.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      color: "#fff",
+    };
+  }
+
+  if (g === "sci-fi" || g === "dystopian") {
+    return {
+      backgroundImage:
+        "linear-gradient(135deg, rgba(3,105,161,0.82), rgba(15,23,42,0.82)), url('/genres/scifi.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      color: "#fff",
+    };
+  }
+
+  if (g === "romance") {
+    return {
+      backgroundImage:
+        "linear-gradient(135deg, rgba(244,114,182,0.78), rgba(190,24,93,0.78)), url('/genres/romance.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      color: "#fff",
+    };
+  }
+
+  if (g === "mystery" || g === "thriller") {
+    return {
+      backgroundImage:
+        "linear-gradient(135deg, rgba(39,39,42,0.84), rgba(63,63,70,0.82)), url('/genres/mystery.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      color: "#fff",
+    };
+  }
+
+  if (g === "horror") {
+    return {
+      backgroundImage:
+        "linear-gradient(135deg, rgba(127,29,29,0.86), rgba(24,24,27,0.88)), url('/genres/horror.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      color: "#fff",
+    };
+  }
+
+  if (g === "historical fiction" || g === "classic") {
+    return {
+      backgroundImage:
+        "linear-gradient(135deg, rgba(120,53,15,0.78), rgba(146,64,14,0.78)), url('/genres/historical.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      color: "#fff",
+    };
+  }
+
+  if (g === "adventure" || g === "young adult") {
+    return {
+      backgroundImage:
+        "linear-gradient(135deg, rgba(22,101,52,0.78), rgba(30,64,175,0.75)), url('/genres/adventure.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      color: "#fff",
+    };
+  }
+
+  return {
+    background: "rgba(255,255,255,0.70)",
+    color: "#18181b",
+  };
+}
 export default function Page() {
   const [stage, setStage] = useState<Stage>("cover");
 
@@ -570,39 +669,34 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
 
   // ---- Limits helpers ----
   function getCapForStatus(s: Status): number | null {
-    if (isAdmin) return null; // unlimited
-    if (!subRow) return null; // if not loaded yet, don't block
-    if (s === "reading") return subRow.max_reading;
-    if (s === "tbr") return subRow.max_tbr;
-    if (s === "read") return subRow.max_read;
-    return subRow.max_dnf;
+  if (isAdmin) return null; // unlimited
+  if (!subRow) return null; // if not loaded yet, don't block
+  if (s === "reading") return subRow.max_reading;
+  if (s === "tbr") return subRow.max_tbr;
+  if (s === "read") return subRow.max_read;
+  return subRow.max_dnf;
+}
+
+
+  function canAddToStatus(s: Status, delta = 1): { ok: boolean; reason?: string } {
+  if (isAdmin) return { ok: true };
+
+  if (subLoading || !subRow) {
+    return { ok: false, reason: "Loading your subscription limits… try again in a second." };
   }
 
-  function canAddToStatus(
-    s: Status,
-    delta = 1
-  ): { ok: boolean; reason?: string } {
-    if (isAdmin) return { ok: true };
-    const cap = getCapForStatus(s);
-    if (cap == null) return { ok: true };
+  const cap = getCapForStatus(s);
+  if (cap == null) return { ok: true };
 
-    const current =
-      s === "reading"
-        ? counts.reading
-        : s === "tbr"
-        ? counts.tbr
-        : s === "read"
-        ? counts.read
-        : counts.dnf;
+  const current =
+    s === "reading" ? counts.reading : s === "tbr" ? counts.tbr : s === "read" ? counts.read : counts.dnf;
 
-    if (current + delta > cap) {
-      return {
-        ok: false,
-        reason: `Subscription limit reached for "${s.toUpperCase()}". Max allowed: ${cap}.`,
-      };
-    }
-    return { ok: true };
+  if (current + delta > cap) {
+    return { ok: false, reason: `Subscription limit reached for "${s.toUpperCase()}". Max allowed: ${cap}.` };
   }
+  return { ok: true };
+}
+
 
   function aiQuotaInfo() {
     if (isAdmin)
@@ -632,7 +726,7 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
 
     const { data, error } = await supabase
       .from("subscriptions")
-      .update({ ai_used_monthly: 0, ai_cycle_start: nowStart })
+     .update({ ai_used_monthly: (subRow.ai_used_monthly ?? 0) + 1 })
       .eq("user_id", uid)
       .select("*")
       .single();
@@ -645,22 +739,15 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
   }
 
   async function incrementAiUsed(uid: string) {
-    if (isAdmin) return;
-    if (!subRow) return;
+  if (isAdmin) return;
 
-    const { data, error } = await supabase
-      .from("subscriptions")
-      .update({ ai_used_monthly: (subRow.ai_used_monthly ?? 0) + 1 })
-      .eq("user_id", uid)
-      .select("*")
-      .single();
-
-    if (error) {
-      console.error("increment ai used error:", error);
-      return;
-    }
-    setSubRow(data as SubscriptionRow);
+  const { data, error } = await supabase.rpc("increment_ai_used", { p_user_id: uid });
+  if (error) {
+    console.error("increment ai used error:", error);
+    return;
   }
+  setSubRow(data as SubscriptionRow);
+}
 
   // ---- Load liked authors from localStorage ----
   useEffect(() => {
@@ -854,23 +941,58 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
     };
   }, []);
 
-  async function signInWithEmail(e: React.FormEvent) {
-    e.preventDefault();
-    const cleanEmail = email.trim();
-    if (!cleanEmail) return;
+ async function signInWithEmail(e: React.FormEvent) {
+  e.preventDefault();
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email: cleanEmail,
-      options: { emailRedirectTo: "http://localhost:3000" },
-    });
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) return;
 
-    if (error) {
-      console.error("signInWithOtp error:", error);
-      alert(error.message);
-      return;
-    }
-    setEmailSent(true);
+  // ✅ Your deployed URL (never localhost)
+  const PROD_URL = "https://book-board-vert.vercel.app";
+
+  // ✅ Prefer env var if it exists, otherwise fall back to PROD_URL (not origin)
+  const envUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "").trim().replace(/\/+$/, "");
+  const origin =
+    typeof window !== "undefined" ? window.location.origin.replace(/\/+$/, "") : "";
+
+  const redirectBase =
+    process.env.NODE_ENV === "production"
+      ? (envUrl || PROD_URL) // ✅ never localhost in production
+      : (envUrl || origin);  // ✅ dev can use localhost
+
+  // Extra safety
+  if (process.env.NODE_ENV === "production" && redirectBase.includes("localhost")) {
+    alert(
+      "Production redirect is localhost. Fix NEXT_PUBLIC_SITE_URL in Vercel settings.\n" +
+        "Current: " + redirectBase
+    );
+    return;
   }
+
+  const emailRedirectTo = `${redirectBase}/auth/callback`;
+
+  console.log("signInWithEmail:", {
+    NODE_ENV: process.env.NODE_ENV,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    origin,
+    redirectBase,
+    emailRedirectTo,
+  });
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email: cleanEmail,
+    options: { emailRedirectTo },
+  });
+
+  if (error) {
+    console.error("signInWithOtp error:", error);
+    alert(error.message);
+    return;
+  }
+
+  setEmailSent(true);
+}
+
 
   function openBook() {
     if (stage !== "cover") return;
@@ -1178,6 +1300,24 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
 
   return (
     <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden", color: "#18181b" }}>
+      {/* 🔎 DEBUG: shows which origin this build is actually running on */}
+    <div
+      style={{
+        position: "fixed",
+        bottom: 10,
+        right: 10,
+        background: "#000",
+        color: "#fff",
+        padding: 8,
+        borderRadius: 8,
+        zIndex: 9999,
+        fontSize: 12,
+      }}
+    >
+      {typeof window !== "undefined" ? window.location.origin : "server"}
+    </div>
+
+    {/* everything else you already have */}
       {/* BOOK SCENE (non-interactive background) */}
       <div style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none" }}>
         {/* Cover */}
@@ -1241,251 +1381,278 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
         />
       </div>
 
-      {/* COVER INTERACTION */}
-      {stage === "cover" ? (
-        <div style={{ position: "fixed", inset: 0, zIndex: 20 }}>
-          <button
-            type="button"
-            onClick={() => {
-              if (!sessionChecked) return;
-              openBook();
-            }}
-            aria-label="Open book"
-            style={{
-              position: "fixed",
-              inset: 0,
-              width: "100vw",
-              height: "100vh",
-              background: "transparent",
-              border: "none",
-              padding: 0,
-              margin: 0,
-              cursor: "pointer",
-              zIndex: 10,
-            }}
-          />
+     {/* COVER INTERACTION */}
+{stage === "cover" ? (
+  <div style={{ position: "fixed", inset: 0, zIndex: 20 }}>
+    <button
+      type="button"
+      onClick={() => {
+        if (!sessionChecked) return;
+        openBook();
+      }}
+      aria-label="Open book"
+      style={{
+        position: "fixed",
+        inset: 0,
+        width: "100vw",
+        height: "100vh",
+        background: "transparent",
+        border: "none",
+        padding: 0,
+        margin: 0,
+        cursor: "pointer",
+        zIndex: 10,
+      }}
+    />
 
-          {/* Cover content */}
+    {/* Cover content */}
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 20,
+        pointerEvents: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        color: "#fff",
+      }}
+    >
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: -0.5 }}>
+          Book Boards
+        </div>
+        <div style={{ marginTop: 8, fontSize: 14, opacity: 0.9 }}>
+          Read • Reading • TBR • DNF
+        </div>
+
+        {!sessionChecked ? (
           <div
             style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 20,
-              pointerEvents: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 24,
-              color: "#fff",
+              marginTop: 24,
+              borderRadius: 16,
+              background: "rgba(255,255,255,0.10)",
+              padding: 16,
             }}
           >
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: -0.5 }}>Book Boards</div>
-              <div style={{ marginTop: 8, fontSize: 14, opacity: 0.9 }}>Read • Reading • TBR • DNF</div>
-
-              {!sessionChecked ? (
-                <div
-                  style={{
-                    marginTop: 24,
-                    borderRadius: 16,
-                    background: "rgba(255,255,255,0.10)",
-                    padding: 16,
-                  }}
-                >
-                  Loading…
-                </div>
-              ) : !userId ? (
-                <div
-                  style={{
-                    marginTop: 24,
-                    width: "100%",
-                    maxWidth: 420,
-                    borderRadius: 16,
-                    background: "rgba(255,255,255,0.15)",
-                    padding: 16,
-                    textAlign: "left",
-                    backdropFilter: "blur(6px)",
-                    pointerEvents: "auto",
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <form onSubmit={signInWithEmail} style={{ display: "grid", gap: 12 }}>
-                    <input
-                      style={{
-                        height: 44,
-                        borderRadius: 12,
-                        border: "1px solid rgba(255,255,255,0.25)",
-                        background: "rgba(255,255,255,0.10)",
-                        padding: "0 14px",
-                        color: "#fff",
-                        outline: "none",
-                      }}
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <button
-                      style={{
-                        height: 44,
-                        borderRadius: 12,
-                        border: "none",
-                        background: "rgba(0,0,0,0.75)",
-                        color: "#fff",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
-                    >
-                      Send me a login link
-                    </button>
-                  </form>
-
-                  {emailSent ? (
-                    <p style={{ marginTop: 12, fontSize: 14, color: "#bbf7d0" }}>
-                      ✅ Check your inbox for the magic link, then come back here.
-                    </p>
-                  ) : (
-                    <p style={{ marginTop: 12, fontSize: 12, opacity: 0.85 }}>
-                      Click the cover anywhere else to open.
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p style={{ marginTop: 18, fontSize: 12, opacity: 0.85 }}>Click the cover to open</p>
-              )}
-            </div>
+            Loading…
           </div>
-        </div>
-      ) : null}
-
-      {/* MAIN CONTENT */}
-      <div style={{ position: "relative", zIndex: 10 }}>
-        {/* Library */}
-        {showLibrary && userId ? (
-          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 16px 48px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-              <button
-                onClick={signOut}
+        ) : !userId ? (
+          <div
+            style={{
+              marginTop: 24,
+              width: "100%",
+              maxWidth: 420,
+              borderRadius: 16,
+              background: "rgba(255,255,255,0.15)",
+              padding: 16,
+              textAlign: "left",
+              backdropFilter: "blur(6px)",
+              pointerEvents: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* ✅ LOGIN FORM (this is what should be here) */}
+            <form onSubmit={signInWithEmail} style={{ display: "grid", gap: 12 }}>
+              <input
                 style={{
-                  borderRadius: 999,
-                  border: "1px solid rgba(0,0,0,0.10)",
-                  background: "rgba(255,255,255,0.70)",
-                  padding: "10px 14px",
-                  fontSize: 14,
+                  height: 44,
+                  borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  background: "rgba(255,255,255,0.10)",
+                  padding: "0 14px",
+                  color: "#fff",
+                  outline: "none",
+                }}
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+
+              <button
+                type="submit"
+                disabled={emailSent}
+                style={{
+                  height: 44,
+                  borderRadius: 12,
+                  border: "none",
+                  background: "rgba(0,0,0,0.75)",
+                  color: "#fff",
                   fontWeight: 600,
-                  cursor: "pointer",
+                  cursor: emailSent ? "not-allowed" : "pointer",
+                  opacity: emailSent ? 0.6 : 1,
                 }}
               >
-                Sign out
+                {emailSent ? "Link sent (check email)" : "Send me a login link"}
               </button>
-              
+            </form>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {/* Subscription badge */}
-                <SubscribeButton />
-                <div
-                  style={{
-                    borderRadius: 999,
-                    border: "1px solid rgba(0,0,0,0.10)",
-                    background: "rgba(255,255,255,0.70)",
-                    padding: "10px 14px",
-                    fontSize: 12,
-                    fontWeight: 800,
-                    color: "#18181b",
-                  }}
-                  title="Subscription / limits"
-                >
-                  {isAdmin
-                    ? "ADMIN (unlimited)"
-                    : subLoading
-                    ? "Loading limits…"
-                    : quota.unlimited
-                    ? "AI: Unlimited"
-                    : `AI: ${quota.used}/${quota.limit} this month`}
+            {emailSent ? (
+              <p style={{ marginTop: 12, fontSize: 14, color: "#bbf7d0" }}>
+                ✅ Check your inbox for the magic link, then come back here.
+              </p>
+            ) : (
+              <p style={{ marginTop: 12, fontSize: 12, opacity: 0.85 }}>
+                Click the cover anywhere else to open.
+              </p>
+            )}
+          </div>
+        ) : (
+          <p style={{ marginTop: 18, fontSize: 12, opacity: 0.85 }}>
+            Click the cover to open
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+) : null}
+
+{/* MAIN CONTENT */}
+<div style={{ position: "relative", zIndex: 10 }}>
+  {/* Library */}
+  {showLibrary && userId ? (
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 16px 48px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <button
+          onClick={signOut}
+          style={{
+            borderRadius: 999,
+            border: "1px solid rgba(0,0,0,0.10)",
+            background: "rgba(255,255,255,0.70)",
+            padding: "10px 14px",
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          Sign out
+        </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* Subscription badge */}
+          <SubscribeButton />
+          <div
+            style={{
+              borderRadius: 999,
+              border: "1px solid rgba(0,0,0,0.10)",
+              background: "rgba(255,255,255,0.70)",
+              padding: "10px 14px",
+              fontSize: 12,
+              fontWeight: 800,
+              color: "#18181b",
+            }}
+            title="Subscription / limits"
+          >
+            {isAdmin
+              ? "ADMIN (unlimited)"
+              : subLoading
+              ? "Loading limits…"
+              : quota.unlimited
+              ? "AI: Unlimited"
+              : `AI: ${quota.used}/${quota.limit} this month`}
+          </div>
+
+          {/* AI button + first-time popup */}
+          <div style={{ position: "relative", display: "inline-flex" }}>
+            <button
+              onClick={() => {
+                if (stage !== "library") return;
+                openAIPage();
+              }}
+              style={{
+                borderRadius: 999,
+                border: "1px solid rgba(0,0,0,0.10)",
+                background: "rgba(255,255,255,0.70)",
+                padding: "10px 14px",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              AI
+            </button>
+
+            {showAiTip && stage === "library" ? (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  right: "calc(100% + 12px)",
+                  transform: "translateY(-50%)",
+                  width: 240,
+                  borderRadius: 14,
+                  padding: "10px 12px",
+                  color: "#fff",
+                  background:
+                    "linear-gradient(180deg, rgba(0,0,0,0.80), rgba(0,0,0,0.45))",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
+                  backdropFilter: "blur(8px)",
+                  WebkitBackdropFilter: "blur(8px)",
+                  zIndex: 50,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 6 }}>
+                  New here?
+                </div>
+                <div style={{ fontSize: 12, lineHeight: 1.35, opacity: 0.95 }}>
+                  Tap <b>AI</b> to get a recommendation based on your books and
+                  ratings.
                 </div>
 
-                {/* AI button + first-time popup */}
-                <div style={{ position: "relative", display: "inline-flex" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    marginTop: 10,
+                  }}
+                >
                   <button
-                    onClick={() => {
-                      if (stage !== "library") return;
-                      openAIPage();
-                    }}
+                    type="button"
+                    onClick={dismissAiTip}
                     style={{
-                      borderRadius: 999,
-                      border: "1px solid rgba(0,0,0,0.10)",
-                      background: "rgba(255,255,255,0.70)",
-                      padding: "10px 14px",
-                      fontSize: 14,
-                      fontWeight: 600,
+                      height: 30,
+                      borderRadius: 10,
+                      border: "1px solid rgba(255,255,255,0.20)",
+                      background: "rgba(255,255,255,0.10)",
+                      color: "#fff",
+                      fontWeight: 800,
+                      padding: "0 10px",
                       cursor: "pointer",
                     }}
                   >
-                    AI
+                    Got it
                   </button>
-
-                  {showAiTip && stage === "library" ? (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "50%",
-                        right: "calc(100% + 12px)",
-                        transform: "translateY(-50%)",
-                        width: 240,
-                        borderRadius: 14,
-                        padding: "10px 12px",
-                        color: "#fff",
-                        background:
-                          "linear-gradient(180deg, rgba(0,0,0,0.80), rgba(0,0,0,0.45))",
-                        border: "1px solid rgba(255,255,255,0.18)",
-                        boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
-                        backdropFilter: "blur(8px)",
-                        WebkitBackdropFilter: "blur(8px)",
-                        zIndex: 50,
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 6 }}>New here?</div>
-                      <div style={{ fontSize: 12, lineHeight: 1.35, opacity: 0.95 }}>
-                        Tap <b>AI</b> to get a recommendation based on your books and ratings.
-                      </div>
-
-                      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
-                        <button
-                          type="button"
-                          onClick={dismissAiTip}
-                          style={{
-                            height: 30,
-                            borderRadius: 10,
-                            border: "1px solid rgba(255,255,255,0.20)",
-                            background: "rgba(255,255,255,0.10)",
-                            color: "#fff",
-                            fontWeight: 800,
-                            padding: "0 10px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Got it
-                        </button>
-                      </div>
-
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "50%",
-                          right: -6,
-                          transform: "translateY(-50%) rotate(45deg)",
-                          width: 12,
-                          height: 12,
-                          background: "rgba(0,0,0,0.55)",
-                          borderRight: "1px solid rgba(255,255,255,0.18)",
-                          borderTop: "1px solid rgba(255,255,255,0.18)",
-                        }}
-                      />
-                    </div>
-                  ) : null}
                 </div>
+
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    right: -6,
+                    transform: "translateY(-50%) rotate(45deg)",
+                    width: 12,
+                    height: 12,
+                    background: "rgba(0,0,0,0.55)",
+                    borderRight: "1px solid rgba(255,255,255,0.18)",
+                    borderTop: "1px solid rgba(255,255,255,0.18)",
+                  }}
+                />
               </div>
-            </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
 
             <div style={{ marginTop: 20, display: "grid", gap: 14 }}>
               {/* Admin Panel */}
@@ -1684,18 +1851,23 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
                     required
                   />
 
-                  <input
-                    style={{
-                      height: 44,
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.10)",
-                      background: "rgba(255,255,255,0.85)",
-                      padding: "0 14px",
-                    }}
-                    placeholder="Genre (optional)"
-                    value={genre}
-                    onChange={(e) => setGenre(e.target.value)}
-                  />
+<select
+  value={genre}
+  onChange={(e) => setGenre(e.target.value)}
+  style={{
+    height: 44,
+    borderRadius: 12,
+    border: "1px solid rgba(0,0,0,0.10)",
+    background: "rgba(255,255,255,0.85)",
+    padding: "0 14px",
+  }}
+>
+  {GENRES.map((g) => (
+    <option key={g} value={g}>
+      {g}
+    </option>
+  ))}
+</select>
 
                   <select
                     style={{
@@ -1832,34 +2004,53 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
                   <ul style={{ marginTop: 14, display: "grid", gap: 10, padding: 0, listStyle: "none" }}>
                     {filtered.map((b) => (
                       <li
-                        key={b.id}
-                        style={{
-                          borderRadius: 18,
-                          border: "1px solid rgba(0,0,0,0.10)",
-                          background: "rgba(255,255,255,0.70)",
-                          padding: 16,
-                        }}
-                      >
+  key={b.id}
+  style={{
+    borderRadius: 18,
+    border: "1px solid rgba(0,0,0,0.10)",
+    padding: 16,
+    overflow: "hidden",
+    position: "relative",
+    ...getGenreCardStyle(b.genre),
+  }}
+>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
                           <div style={{ minWidth: 0 }}>
                             <div
-                              style={{
-                                fontSize: 14,
-                                fontWeight: 800,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                maxWidth: 520,
-                              }}
-                            >
-                              {b.title}
-                            </div>
-                            <div style={{ marginTop: 4, fontSize: 12, color: "#52525b" }}>
-                              {(b.author || "Unknown author") + (b.genre ? ` • ${b.genre}` : "")}
-                            </div>
-                            <div style={{ marginTop: 4, fontSize: 11, color: "#71717a" }}>
-                              Added: {formatTs(b.created_at)}
-                            </div>
+  style={{
+    fontSize: 14,
+    fontWeight: 800,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    maxWidth: 520,
+    textShadow: b.genre ? "0 1px 2px rgba(0,0,0,0.45)" : "none",
+  }}
+>
+  {b.title}
+</div>
+
+<div
+  style={{
+    marginTop: 4,
+    fontSize: 12,
+    color: b.genre ? "rgba(255,255,255,0.92)" : "#52525b",
+    textShadow: b.genre ? "0 1px 2px rgba(0,0,0,0.45)" : "none",
+  }}
+>
+  {(b.author || "Unknown author") + (b.genre ? ` • ${b.genre}` : "")}
+</div>
+
+<div
+  style={{
+    marginTop: 4,
+    fontSize: 11,
+    color: b.genre ? "rgba(255,255,255,0.82)" : "#71717a",
+    textShadow: b.genre ? "0 1px 2px rgba(0,0,0,0.45)" : "none",
+  }}
+>
+  Added: {formatTs(b.created_at)}
+</div>
 
                             {b.status === "read" ? (
                               <div style={{ marginTop: 8, fontSize: 12, color: "#3f3f46" }}>
