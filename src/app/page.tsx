@@ -4,6 +4,29 @@ import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./lib/supabaseClient";
 
 type Status = "read" | "reading" | "tbr" | "dnf";
+type Genre = | "Fantasy"| "Sci-Fi"| "Romance"| "Mystery"| "Thriller"| "Horror"| "Historical Fiction"| "Adventure" | "picture books" | "humor" | "Drama" | "Poetry" | "Biography" | "short stories" | "Self-Help" | "Science" | "Classic"| "Business" | "manga" | "comics";
+const GENRE_ICONS: Record<Genre, string> = {
+  Fantasy: "🧙‍♂️",
+  "Sci-Fi": "🚀",
+  Romance: "❤️",
+  Mystery: "🕵️",
+  Thriller: "🔪",
+  Horror: "👻",
+  "Historical Fiction": "🏰",
+  Adventure: "🧭",
+  "picture books": "📖",
+  humor: "😂",
+  Drama: "🎭",
+  Poetry: "✍️",
+  Biography: "👤",
+  "short stories": "📚",
+  "Self-Help": "💡",
+  Science: "🔬",
+  Classic: "📜",
+  Business: "💼",
+  manga: "🗾",
+  comics: "🦸",
+};
 type AiMode = "recommend_next" | "summarize";
 type RecommendScope = "similar_to_current" | "similar_to_recent" | "unrelated";
 type SummarizeScope = "short_summarize" | "long_summarize";
@@ -24,7 +47,7 @@ type Book = {
   id: string;
   title: string;
   author: string | null;
-  genre: string | null;
+  genre: Genre | null;
   status: Status;
   created_at: string;
   rating: number | null;
@@ -599,7 +622,7 @@ export default function Page() {
   // Add form
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState(""); // REQUIRED
-  const [genre, setGenre] = useState("");
+  const [genre, setGenre] = useState<Genre | "">(""); 
   const [status, setStatus] = useState<Status>("tbr");
 
   // ✅ "Like authors" list (local-only)
@@ -1851,23 +1874,6 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
                     required
                   />
 
-<select
-  value={genre}
-  onChange={(e) => setGenre(e.target.value)}
-  style={{
-    height: 44,
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.10)",
-    background: "rgba(255,255,255,0.85)",
-    padding: "0 14px",
-  }}
->
-  {GENRES.map((g) => (
-    <option key={g} value={g}>
-      {g}
-    </option>
-  ))}
-</select>
 
                   <select
                     style={{
@@ -1882,8 +1888,9 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
                     onChange={(e) => setStatus(e.target.value as Status)}
                   >
                     <select
+ 
   value={genre}
-  onChange={(e) => setGenre(e.target.value)}
+  onChange={(e) => setGenre(e.target.value as Genre)}
   style={{
     height: 44,
     borderRadius: 12,
@@ -1892,28 +1899,28 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
     padding: "0 14px",
   }}
 >
-  <option value="">Select Genre</option>
+  <option value="">Genre</option>
 
-  <option value="Fantasy">Fantasy</option>
-  <option value="Sci-Fi">Sci-Fi</option>
-  <option value="Romance">Romance</option>
-  <option value="Mystery">Mystery</option>
-  <option value="Thriller">Thriller</option>
-  <option value="Horror">Horror</option>
-  <option value="Historical Fiction">Historical Fiction</option>
-  <option value="Adventure">Adventure</option>
-  <option value="picture books">picture books</option>
-  <option value="humor">humor</option>
-  <option value="Drama">Drama</option>
-  <option value="Poetry">Poetry</option>
-  <option value="Biography">Biography</option>
-  <option value="short stories">short stories</option>
-  <option value="Self-Help">Self-Help</option>
-  <option value="Science">Science</option>
-  <option value="Classic">Classic</option>
-  <option value="Business">Business</option>
-  <option value="manga">manga</option>
-  <option value="comics">comics</option>
+  <option value="Fantasy">🧙‍♂️ Fantasy</option>
+  <option value="Sci-Fi">🚀 Sci-Fi</option>
+  <option value="Romance">❤️ Romance</option>
+  <option value="Mystery">🕵️ Mystery</option>
+  <option value="Thriller">🔪 Thriller</option>
+  <option value="Horror">👻 Horror</option>
+  <option value="Historical Fiction">🏰 Historical Fiction</option>
+  <option value="Adventure">🧭 Adventure</option>
+  <option value="picture books">📖 picture books</option>
+  <option value="humor">😂 humor</option>
+  <option value="Drama">🎭 Drama</option>
+  <option value="Poetry">✍️ Poetry</option>
+  <option value="Biography">👤 Biography</option>
+  <option value="short stories">📚 short stories</option>
+  <option value="Self-Help">💡 Self-Help</option>
+  <option value="Science">🔬 Science</option>
+  <option value="Classic">📜 Classic</option>
+  <option value="Business">💼 Business</option>
+  <option value="manga">🗾 manga</option>
+  <option value="comics">🦸 comics</option>
 </select>
                     <option value="tbr">TBR</option>
                     <option value="reading">Reading</option>
@@ -2073,7 +2080,9 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
     textShadow: b.genre ? "0 1px 2px rgba(0,0,0,0.45)" : "none",
   }}
 >
-  {(b.author || "Unknown author") + (b.genre ? ` • ${b.genre}` : "")}
+  {b.genre
+  ? `${GENRE_ICONS[b.genre]} ${b.author || "Unknown author"} • ${b.genre}`
+  : b.author || "Unknown author"}
 </div>
 
 <div
