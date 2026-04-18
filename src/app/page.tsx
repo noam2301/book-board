@@ -485,84 +485,7 @@ function SubscribeButton() {
   );
 }
 
-function getGenreCardStyle(genre: string | null) {
-  const g = (genre ?? "").toLowerCase();
 
-  if (g === "fantasy" || g === "urban fantasy" || g === "paranormal") {
-    return {
-      backgroundImage:
-        "linear-gradient(135deg, rgba(76,29,149,0.85), rgba(30,41,59,0.80)), url('/genres/fantasy.jpg')",
-      backgroundSize: "cover",
-      backgroundPosition: "cכenter",
-      color: "#fff",
-    };
-  }
-
-  if (g === "sci-fi" || g === "dystopian") {
-    return {
-      backgroundImage:
-        "linear-gradient(135deg, rgba(3,105,161,0.82), rgba(15,23,42,0.82)), url('/genres/scifi.jpg')",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      color: "#fff",
-    };
-  }
-
-  if (g === "romance") {
-    return {
-      backgroundImage:
-        "linear-gradient(135deg, rgba(244,114,182,0.78), rgba(190,24,93,0.78)), url('/genres/romance.jpg')",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      color: "#fff",
-    };
-  }
-
-  if (g === "mystery" || g === "thriller") {
-    return {
-      backgroundImage:
-        "linear-gradient(135deg, rgba(39,39,42,0.84), rgba(63,63,70,0.82)), url('/genres/mystery.jpg')",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      color: "#fff",
-    };
-  }
-
-  if (g === "horror") {
-    return {
-      backgroundImage:
-        "linear-gradient(135deg, rgba(127,29,29,0.86), rgba(24,24,27,0.88)), url('/genres/horror.jpg')",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      color: "#fff",
-    };
-  }
-
-  if (g === "historical fiction" || g === "classic") {
-    return {
-      backgroundImage:
-        "linear-gradient(135deg, rgba(120,53,15,0.78), rgba(146,64,14,0.78)), url('/genres/historical.jpg')",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      color: "#fff",
-    };
-  }
-
-  if (g === "adventure" || g === "young adult") {
-    return {
-      backgroundImage:
-        "linear-gradient(135deg, rgba(22,101,52,0.78), rgba(30,64,175,0.75)), url('/genres/adventure.jpg')",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      color: "#fff",
-    };
-  }
-
-  return {
-    background: "rgba(255,255,255,0.70)",
-    color: "#18181b",
-  };
-}
 export default function Page() {
   const [stage, setStage] = useState<Stage>("cover");
 
@@ -1299,6 +1222,10 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
   const showAI = stage === "ai" || stage === "ai_opening" || stage === "ai_closing";
 
   const quota = aiQuotaInfo();
+
+  function getGenreCardStyle(genre: string): React.CSSProperties {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden", color: "#18181b" }}>
