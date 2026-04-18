@@ -491,7 +491,7 @@ function getGenreCardStyle(genre: string | null) {
       backgroundImage:
         "linear-gradient(135deg, rgba(76,29,149,0.85), rgba(30,41,59,0.80)), url('/genres/fantasy.jpg')",
       backgroundSize: "cover",
-      backgroundPosition: "center",
+      backgroundPosition: "cכenter",
       color: "#fff",
     };
   }
@@ -1877,9 +1877,44 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
                       background: "rgba(255,255,255,0.85)",
                       padding: "0 14px",
                     }}
+                    
                     value={status}
                     onChange={(e) => setStatus(e.target.value as Status)}
                   >
+                    <select
+  value={genre}
+  onChange={(e) => setGenre(e.target.value)}
+  style={{
+    height: 44,
+    borderRadius: 12,
+    border: "1px solid rgba(0,0,0,0.10)",
+    background: "rgba(255,255,255,0.85)",
+    padding: "0 14px",
+  }}
+>
+  <option value="">Select Genre</option>
+
+  <option value="Fantasy">Fantasy</option>
+  <option value="Sci-Fi">Sci-Fi</option>
+  <option value="Romance">Romance</option>
+  <option value="Mystery">Mystery</option>
+  <option value="Thriller">Thriller</option>
+  <option value="Horror">Horror</option>
+  <option value="Historical Fiction">Historical Fiction</option>
+  <option value="Adventure">Adventure</option>
+  <option value="picture books">picture books</option>
+  <option value="humor">humor</option>
+  <option value="Drama">Drama</option>
+  <option value="Poetry">Poetry</option>
+  <option value="Biography">Biography</option>
+  <option value="short stories">short stories</option>
+  <option value="Self-Help">Self-Help</option>
+  <option value="Science">Science</option>
+  <option value="Classic">Classic</option>
+  <option value="Business">Business</option>
+  <option value="manga">manga</option>
+  <option value="comics">comics</option>
+</select>
                     <option value="tbr">TBR</option>
                     <option value="reading">Reading</option>
                     <option value="read">Read</option>
