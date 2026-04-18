@@ -1987,7 +1987,7 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
   }}
 >
   {b.genre
-  ? `${GENRE_ICONS[b.genre]} ${b.author || "Unknown author"} • ${b.genre}`
+  ? `${GENRE_ICONS[b.genre as Genre] ?? "📚"} ${b.author || "Unknown author"} • ${b.genre}`
   : b.author || "Unknown author"}
 </div>
 
