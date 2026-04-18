@@ -484,28 +484,7 @@ function SubscribeButton() {
     </div>
   );
 }
-const GENRES = [
-  "Fantasy",
-  "Sci-Fi",
-  "Romance",
-  "Mystery",
-  "Thriller",
-  "Horror",
-  "Historical Fiction",
-  "Adventure",
-  "picture books",
-  "humor",
-  "Drama",
-  "Poetry",
-  "Biography",
-  "short stories",
-  "Self-Help",
-  "Science",
-  "Classic",
-  "Business",
-  "manga",
-  "comics",
-] as const;
+
 function getGenreCardStyle(genre: string | null) {
   const g = (genre ?? "").toLowerCase();
 
