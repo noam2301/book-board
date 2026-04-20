@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./lib/supabaseClient";
 
 type Status = "read" | "reading" | "tbr" | "dnf";
-type Genre = | "Fantasy"| "Sci-Fi"| "Romance"| "Mystery"| "Thriller"| "Horror"| "Historical Fiction"| "Adventure" | "picture books" | "humor" | "Drama" | "Poetry" | "Biography" | "short stories" | "Self-Help" | "Science" | "Classic"| "Business" | "manga" | "comics";
+type Genre =  "Fantasy"| "Sci-Fi"| "Romance"| "Mystery"| "Thriller"| "Horror"| "Historical Fiction"| "Adventure" | "picture books" | "humor" | "Drama" | "Poetry" | "Biography" | "short stories" | "Self-Help" | "Science" | "Classic"| "Business" | "manga" | "comics";
 const GENRE_ICONS: Record<Genre, string> = {
   Fantasy: "🧙‍♂️",
   "Sci-Fi": "🚀",
