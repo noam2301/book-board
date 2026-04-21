@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./lib/supabaseClient";
 
 type Status = "read" | "reading" | "tbr" | "dnf";
-type Genre =  "Fantasy"| "Sci-Fi"| "Romance"| "Mystery"| "Thriller"| "Horror"| "Historical Fiction"| "Adventure" | "picture books" | "humor" | "Drama" | "Poetry" | "Biography" | "short stories" | "Self-Help" | "Science" | "Classic"| "Business" | "manga" | "comics";
+type Genre =  | "Fantasy"| "Sci-Fi"| "Romance"| "Mystery"| "Thriller"| "Horror"| "Historical Fiction"| "Adventure" | "picture books" | "humor" | "Drama" | "Poetry" | "Biography" | "short stories" | "Self-Help" | "Science" | "Classic"| "Business" | "manga" | "comics";
 const GENRE_ICONS: Record<Genre, string> = {
   Fantasy: "🧙‍♂️",
   "Sci-Fi": "🚀",
@@ -47,7 +47,7 @@ type Book = {
   id: string;
   title: string;
   author: string | null;
-  genre: Genre | null;
+  genre: string | null;
   status: Status;
   created_at: string;
   rating: number | null;
@@ -377,15 +377,15 @@ function SubscribeButton() {
               animation: "bbPopIn 180ms ease-out",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 950 }}>Checkout</div>
-                <div style={{ marginTop: 4, fontSize: 13, color: "#52525b" }}>
-                  Plan: <b>{selectedPlan?.name}</b> • {selectedPlan?.priceLabel}
-                </div>
-              </div>
+  <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+<div>
+  <div style={{ fontSize: 16, fontWeight: 950 }}>Checkout</div>
+  <div style={{ marginTop: 4, fontSize: 12, color: "#52525b" }}>
+    Plan: <b>{selectedPlan?.name}</b> • {selectedPlan?.priceLabel}
+  </div>
+</div>
 
-              <button
+<button
                 onClick={closeCheckout}
                 style={{
                   height: 34,
@@ -524,7 +524,7 @@ export default function Page() {
   // Add form
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState(""); // REQUIRED
-  const [genre, setGenre] = useState<Genre | "">(""); 
+  const [genre, setGenre] = useState("");
   const [status, setStatus] = useState<Status>("tbr");
 
   // ✅ "Like authors" list (local-only)
@@ -651,7 +651,7 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
 
     const { data, error } = await supabase
       .from("subscriptions")
-     .update({ ai_used_monthly: (subRow.ai_used_monthly ?? 0) + 1 })
+    .update({ ai_used_monthly: 0, ai_cycle_start: nowStart })
       .eq("user_id", uid)
       .select("*")
       .single();
@@ -977,7 +977,7 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
           user_id: userId,
           title: cleanTitle,
           author: cleanAuthor,
-          genre: genre.trim() ? genre.trim() : null,
+          genre: genre || null,
           status,
           rating: null,
         },
@@ -1223,10 +1223,29 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
 
   const quota = aiQuotaInfo();
 
-  function getGenreCardStyle(genre: string): React.CSSProperties {
-    throw new Error("Function not implemented.");
+ function getGenreCardStyle(genre: string | null) {
+  const g = (genre ?? "").toLowerCase();
+
+  if (g === "fantasy") {
+    return {
+      backgroundImage: "url('/genres/fantasy.jpg')",
+      backgroundSize: "cover",
+      color: "#fff",
+    };
   }
 
+  if (g === "sci-fi") {
+    return {
+      backgroundImage: "url('/genres/scifi.jpg')",
+      backgroundSize: "cover",
+      color: "#fff",
+    };
+  }
+
+  return {
+    background: "rgba(255,255,255,0.7)",
+  };
+}
   return (
     <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden", color: "#18181b" }}>
       {/* 🔎 DEBUG: shows which origin this build is actually running on */}
@@ -1781,22 +1800,42 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
                   />
 
 
-                  <select
-                    style={{
-                      height: 44,
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.10)",
-                      background: "rgba(255,255,255,0.85)",
-                      padding: "0 14px",
-                    }}
-                    
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as Status)}
-                  >
-                    <select
  
+  <select 
+   style={{
+    height: 44,
+    borderRadius: 12,
+    border: "1px solid rgba(0,0,0,0.10)",
+    background: "rgba(255,255,255,0.85)",
+    padding: "0 14px",
+  }}
   value={genre}
-  onChange={(e) => setGenre(e.target.value as Genre)}
+  onChange={(e) => setGenre(e.target.value)}
+>
+  <option value="">Genre</option>
+  <option value="Fantasy">Fantasy</option>
+  <option value="Sci-Fi">Sci-Fi</option>
+  <option value="Romance">Romance</option>
+  <option value="Mystery">Mystery</option>
+  <option value="Thriller">Thriller</option>
+  <option value="Horror">Horror</option>
+  <option value="Historical Fiction">Historical Fiction</option>
+  <option value="Adventure">Adventure</option>
+  <option value="picture books">picture books</option>
+  <option value="humor">humor</option>
+  <option value="Drama">Drama</option>
+  <option value="Poetry">Poetry</option>
+  <option value="Biography">Biography</option>
+  <option value="short stories">short stories</option>
+  <option value="Self-Help">Self-Help</option>
+  <option value="Science">Science</option>
+  <option value="Classic">Classic</option>
+  <option value="Business">Business</option>
+  <option value="manga">manga</option>
+  <option value="comics">comics</option>
+</select>
+
+<select
   style={{
     height: 44,
     borderRadius: 12,
@@ -1804,50 +1843,29 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
     background: "rgba(255,255,255,0.85)",
     padding: "0 14px",
   }}
+  value={status}
+  onChange={(e) => setStatus(e.target.value as Status)}
 >
-  <option value="">Genre</option>
-
-  <option value="Fantasy">🧙‍♂️ Fantasy</option>
-  <option value="Sci-Fi">🚀 Sci-Fi</option>
-  <option value="Romance">❤️ Romance</option>
-  <option value="Mystery">🕵️ Mystery</option>
-  <option value="Thriller">🔪 Thriller</option>
-  <option value="Horror">👻 Horror</option>
-  <option value="Historical Fiction">🏰 Historical Fiction</option>
-  <option value="Adventure">🧭 Adventure</option>
-  <option value="picture books">📖 picture books</option>
-  <option value="humor">😂 humor</option>
-  <option value="Drama">🎭 Drama</option>
-  <option value="Poetry">✍️ Poetry</option>
-  <option value="Biography">👤 Biography</option>
-  <option value="short stories">📚 short stories</option>
-  <option value="Self-Help">💡 Self-Help</option>
-  <option value="Science">🔬 Science</option>
-  <option value="Classic">📜 Classic</option>
-  <option value="Business">💼 Business</option>
-  <option value="manga">🗾 manga</option>
-  <option value="comics">🦸 comics</option>
+  <option value="tbr">TBR</option>
+  <option value="reading">Reading</option>
+  <option value="read">Read</option>
+  <option value="dnf">DNF</option>
 </select>
-                    <option value="tbr">TBR</option>
-                    <option value="reading">Reading</option>
-                    <option value="read">Read</option>
-                    <option value="dnf">DNF</option>
-                  </select>
 
-                  <button
-                    style={{
-                      height: 44,
-                      borderRadius: 12,
-                      border: "none",
-                      background: "#18181b",
-                      color: "#fff",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Add
-                  </button>
-                </form>
+<button
+  style={{
+    height: 44,
+    borderRadius: 12,
+    border: "none",
+    background: "#18181b",
+    color: "#fff",
+    fontWeight: 700,
+    cursor: "pointer",
+  }}
+>
+  Add
+</button>
+</form>
               </div>
 
               {/* Authors I like */}
@@ -1977,7 +1995,6 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
 >
   {b.title}
 </div>
-
 <div
   style={{
     marginTop: 4,
@@ -1986,9 +2003,7 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
     textShadow: b.genre ? "0 1px 2px rgba(0,0,0,0.45)" : "none",
   }}
 >
-  {b.genre
-  ? `${GENRE_ICONS[b.genre as Genre] ?? "📚"} ${b.author || "Unknown author"} • ${b.genre}`
-  : b.author || "Unknown author"}
+  {(b.author || "Unknown author") + (b.genre ? ` • ${b.genre}` : "")}
 </div>
 
 <div
@@ -2381,6 +2396,3 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
     </div>
   );
 }
-<div style={{ position: "fixed", top: 10, left: 10, zIndex: 9999, background: "red", color: "white", padding: 8 }}>
-  NEW BUILD TEST
-</div>
