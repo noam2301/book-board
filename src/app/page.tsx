@@ -1249,21 +1249,7 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
   return (
     <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden", color: "#18181b" }}>
       {/* 🔎 DEBUG: shows which origin this build is actually running on */}
-    <div
-      style={{
-        position: "fixed",
-        bottom: 10,
-        right: 10,
-        background: "#000",
-        color: "#fff",
-        padding: 8,
-        borderRadius: 8,
-        zIndex: 9999,
-        fontSize: 12,
-      }}
-    >
-      {typeof window !== "undefined" ? window.location.origin : "server"}
-    </div>
+   
 
     {/* everything else you already have */}
       {/* BOOK SCENE (non-interactive background) */}
@@ -1278,13 +1264,6 @@ const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | n
           style={{ position: "absolute", inset: 0 }}
         >
           <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage: "url(/book-cover.jpg)",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
           />
           <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.25)" }} />
         </div>
