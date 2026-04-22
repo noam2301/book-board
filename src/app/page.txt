@@ -1,0 +1,7 @@
+import dynamic from "next/dynamic";
+
+const BookBoard = dynamic(() => import("./components/BookBoard"), { ssr: false });
+
+export default function Page() {
+  return <BookBoard />;
+}
